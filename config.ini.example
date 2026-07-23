@@ -1,0 +1,19 @@
+; DESCO Prepaid Meter Intelligence Dashboard
+; Account Configuration File
+;
+; Instructions:
+;   1. Copy this file to config.ini
+;   2. Replace the example account numbers with your actual DESCO account numbers
+;   3. Use any label you like for the account names (left side of the = sign)
+;
+; Format:  Display Name = DESCO Account Number
+; Example: Ground Floor  = 12345678
+;
+; Note: config.ini is gitignored and will never be committed to version control.
+
+[ACCOUNT]
+Ground Floor  = 12345678
+First Floor   = 87654321
+Second Floor  = 11223344
+; Add more accounts below as needed:
+; Third Floor  = 55667788

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DESCO Prepaid Meter Intelligence Dashboard</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js & Annotation Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dark-theme">
+
+  <!-- Background Glowing Orbs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- App Header / Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo">
+        <i class="fa-solid fa-bolt-lightning brand-icon"></i>
+        <div class="brand-text">
+          <h1>DESCO <span>PREPAID</span></h1>
+          <span class="sub-tag">Intelligence Dashboard v2.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="global-search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="globalSearch" placeholder="Search account name, meter no, tariff...">
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="btn btn-secondary btn-sm" id="btnOpenBercCalc" title="BERC 2026 Tariff & Bill Simulator">
+        <i class="fa-solid fa-calculator text-emerald"></i> <span class="hide-mobile">BERC 2026 Rates</span>
+      </button>
+      <div class="status-indicator">
+        <span class="pulse-dot green" id="apiStatusDot"></span>
+        <span id="apiStatusText" class="hide-mobile">Live Direct API</span>
+      </div>
+      <button class="btn btn-icon" id="btnRefreshAll" title="Refresh All Accounts">
+        <i class="fa-solid fa-rotate-right" id="refreshSpin"></i>
+      </button>
+      <div class="time-badge" id="liveClock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="dashboard-container">
+
+    <!-- Account Cards Grid Section -->
+    <section class="accounts-section">
+      <!-- Grid Container -->
+      <div class="accounts-grid" id="accountsGrid">
+        <!-- Shimmer Loaders inserted by JS during fetch -->
+      </div>
+    </section>
+
+    <!-- Consumption Analytics & Interactive Custom Charts -->
+    <section class="analytics-section glass-card">
+      <div class="analytics-header">
+        <div class="analytics-title">
+          <i class="fa-solid fa-chart-line"></i>
+          <div>
+            <h2>Unit Consumption & Usage Intelligence</h2>
+            <p>Analyze daily and monthly energy consumption</p>
+          </div>
+        </div>
+
+        <div class="account-selector-wrapper">
+          <label for="chartAccountSelect"><i class="fa-solid fa-user-gear"></i> Target Account:</label>
+          <select id="chartAccountSelect" class="custom-select">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Controls Toolbar: Tabs & Pickers -->
+      <div class="chart-toolbar">
+        <div class="view-toggle">
+          <button class="toggle-btn active" id="btnDailyView"><i class="fa-solid fa-calendar-day"></i> Daily Units</button>
+          <button class="toggle-btn" id="btnMonthlyView"><i class="fa-solid fa-calendar-days"></i> Monthly Units</button>
+        </div>
+
+        <!-- Daily Controls -->
+        <div class="picker-group" id="dailyPickerGroup">
+          <label>From:</label>
+          <div class="date-selects">
+            <select id="dailyFromDay" class="custom-select"></select>
+            <select id="dailyFromMonth" class="custom-select"></select>
+            <select id="dailyFromYear" class="custom-select"></select>
+          </div>
+          <label>To:</label>
+          <div class="date-selects">
+            <select id="dailyToDay" class="custom-select"></select>
+            <select id="dailyToMonth" class="custom-select"></select>
+            <select id="dailyToYear" class="custom-select"></select>
+          </div>
+          <div class="quick-presets">
+            <button class="preset-btn" data-days="7">7D</button>
+            <button class="preset-btn active" data-days="30">30D</button>
+            <button class="preset-btn" data-days="90">90D</button>
+          </div>
+        </div>
+
+        <!-- Monthly Controls (Hidden by default) -->
+        <div class="picker-group hidden" id="monthlyPickerGroup">
+          <label>From Month:</label>
+          <div class="date-selects">
+            <select id="monthlyFromMonth" class="custom-select"></select>
+            <select id="monthlyFromYear" class="custom-select"></select>
+          </div>
+          <label>To Month:</label>
+          <div class="date-selects">
+            <select id="monthlyToMonth" class="custom-select"></select>
+            <select id="monthlyToYear" class="custom-select"></select>
+          </div>
+          <div class="quick-presets">
+            <button class="monthly-preset-btn" data-months="3">3M</button>
+            <button class="monthly-preset-btn active" data-months="6">6M</button>
+            <button class="monthly-preset-btn" data-months="12">12M</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BERC Tariff Slab Proximity Tracker (Compact Mobile Friendly) -->
+      <div class="slab-proximity-card glass-card" id="slabProximitySection">
+        <div class="slab-cards-grid">
+          <!-- Previous Slab Card -->
+          <div class="slab-stat-card prev-slab-card">
+            <div class="slab-stat-header">
+              <span class="slab-tag-pill purple"><i class="fa-solid fa-backward"></i> Previous Limit</span>
+              <span class="slab-rate-label" id="prevSlabRateLabel">Slab 1 @ 6.18 Tk</span>
+            </div>
+            <div class="slab-stat-value" id="prevSlabValDisplay">75.0 <span class="unit">kWh/mo</span></div>
+            <div class="slab-stat-sub" id="prevSlabSubText">Threshold Passed</div>
+          </div>
+
+          <!-- Current Slab Card -->
+          <div class="slab-stat-card curr-slab-card">
+            <div class="slab-stat-header">
+              <span class="slab-tag-pill emerald"><i class="fa-solid fa-bullseye"></i> Current Limit</span>
+              <span class="slab-rate-label" id="currSlabRateLabel">Slab 2 @ 8.50 Tk</span>
+            </div>
+            <div class="slab-stat-value text-emerald" id="currSlabValDisplay">200.0 <span class="unit">kWh/mo</span></div>
+            <div class="slab-stat-sub" id="currSlabSubText">57.5 kWh Remaining (71.3% Used)</div>
+          </div>
+
+          <!-- Next Slab Card -->
+          <div class="slab-stat-card next-slab-card">
+            <div class="slab-stat-header">
+              <span class="slab-tag-pill amber"><i class="fa-solid fa-forward"></i> Next Limit</span>
+              <span class="slab-rate-label" id="nextSlabRateLabel">Slab 3 @ 9.10 Tk</span>
+            </div>
+            <div class="slab-stat-value text-warning" id="nextSlabValDisplay">300.0 <span class="unit">kWh/mo</span></div>
+            <div class="slab-stat-sub" id="nextSlabSubText">157.5 kWh to Next Step</div>
+          </div>
+        </div>
+
+        <!-- Slab Visual Progress Bar with Spectrum Track & Vertical Indicators -->
+        <div class="slab-progress-container">
+          <div class="slab-progress-bar-wrapper" id="slabProgressBarWrapper">
+            <div class="slab-track-bg"></div>
+            <div class="slab-progress-fill" id="slabProgressFill" style="width: 50%;"></div>
+            
+            <!-- Indication Lines -->
+            <div class="slab-indicator-line line-prev" id="linePrev" style="left: 0%;" title="Previous Limit"></div>
+            <div class="slab-indicator-line line-curr" id="lineCurr" style="left: 60%;" title="Current Limit"></div>
+            <div class="slab-indicator-line line-user" id="lineUser" style="left: 50%;" title="My Current Consumption">
+              <div class="user-pin-tag" id="userPinTag">You (142.5)</div>
+            </div>
+            <div class="slab-indicator-line line-next" id="lineNext" style="left: 100%;" title="Next Limit"></div>
+          </div>
+          <div class="slab-progress-footer">
+            <span id="slabProgressStart">0 kWh (Prev)</span>
+            <span id="slabProgressCenterStatus" class="text-emerald" style="font-weight: 600;">142.5 / 200.0 kWh used (57.5 kWh buffer left)</span>
+            <span id="slabProgressEnd">300.0 kWh (Next)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Container -->
+      <div class="chart-wrapper" style="overflow-x: auto; overflow-y: hidden;">
+        <div style="min-width: max(100%, 600px); height: 100%;">
+          <canvas id="consumptionChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart Metrics Summary Bar -->
+      <div class="chart-metrics-bar" style="margin-top: 0.8rem;">
+        <div class="metric-item">
+          <span class="metric-label">Recharged Month</span>
+          <span class="metric-val text-emerald" id="metricRechargedMonth">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Recharged Year</span>
+          <span class="metric-val text-blue" id="metricRechargedYear">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Total Cost (Period)</span>
+          <span class="metric-val" id="metricTotalCost" style="color: #f59e0b;">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Daily Cost</span>
+          <span class="metric-val" id="metricAvgCost" style="color: #f59e0b;">0.00 BDT/day</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Monthly Cost</span>
+          <span class="metric-val text-emerald" id="metricAvgMonthlyCost">0.00 BDT/mo</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Proj. Month End</span>
+          <span class="metric-val text-emerald" id="metricProjectedMonthlyCost">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Yearly Cost</span>
+          <span class="metric-val text-blue" id="metricAvgYearlyCost">0.00 BDT/yr</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Proj. Year End</span>
+          <span class="metric-val" id="metricProjectedYearlyCost" style="color: #a855f7;">0.00 BDT</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Executive Summary Banner (Moved to Bottom) -->
+    <section class="summary-banner" style="margin-top: 1.25rem;">
+      <div class="summary-card glass-card">
+        <div class="card-icon blue"><i class="fa-solid fa-wallet"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total Balance</span>
+          <h2 id="totalBalanceVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon emerald"><i class="fa-solid fa-charging-station"></i></div>
+        <div class="card-info">
+          <span class="card-label">Month Recharges</span>
+          <h2 id="totalMonthRechargeVal">--.-- <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon cyan" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total AVG Monthly Cost</span>
+          <h2 id="totalAvgMonthlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon amber" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total PROJ. Monthly Cost</span>
+          <h2 id="totalProjMonthlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon blue"><i class="fa-solid fa-calculator"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total AVG Yearly Cost</span>
+          <h2 id="totalAvgYearlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon purple" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total PROJ. Yearly Cost</span>
+          <h2 id="totalProjYearlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Recharge History & CSV Export -->
+  <div class="modal-overlay hidden" id="historyModal">
+    <div class="modal-content glass-card wide-modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <div>
+            <h3 id="modalAccountName">Account Recharge History</h3>
+            <span class="sub-tag" id="modalAccountSub">--</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-sm btn-secondary" id="btnExportCSV"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          <button class="btn-close" id="btnCloseHistoryModal">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="table-controls">
+          <input type="text" id="historySearch" placeholder="Filter by Token or Amount..." class="table-search" style="width: 100%;">
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Recharge Date & Time</th>
+                <th>Total BDT</th>
+                <th>Net Amount</th>
+                <th>VAT</th>
+                <th>Meter Rent</th>
+                <th>Token Number</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <!-- Rows inserted by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: BERC 2026 Tariff & Bill Simulator -->
+  <div class="modal-overlay hidden" id="bercModal">
+    <div class="modal-content glass-card wide-modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-calculator text-emerald"></i>
+          <div>
+            <h3>BERC Official 2026 Electricity Tariff Calculator</h3>
+            <span class="sub-tag">June 2026 Rates, Slab Breakdown & Bill Simulator</span>
+          </div>
+        </div>
+        <button class="btn-close" id="btnCloseBercModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="berc-sim-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div class="sim-inputs glass-card" style="padding: 1.25rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--accent-cyan);"><i class="fa-solid fa-sliders"></i> Simulation Parameters</h4>
+            
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Tariff Category</label>
+              <div style="padding: 0.6rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); font-weight: 600; color: var(--accent-cyan);">
+                LT-A: Residential
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Monthly Consumption (kWh / Units)</label>
+              <input type="number" id="simUnits" value="250" class="custom-date-input" style="width: 100%; font-size: 1.1rem; padding: 0.6rem;" placeholder="e.g. 250">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Sanctioned Load (kW)</label>
+              <input type="number" id="simLoad" value="2" class="custom-date-input" style="width: 100%; font-size: 1.1rem; padding: 0.6rem;" placeholder="e.g. 2">
+            </div>
+
+            <button class="btn btn-primary" id="btnCalculateSim" style="width: 100%; justify-content: center;">
+              <i class="fa-solid fa-calculator"></i> Calculate Detailed Bill
+            </button>
+          </div>
+
+          <div class="sim-results glass-card" style="padding: 1.25rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--accent-blue);"><i class="fa-solid fa-receipt"></i> Projected Bill Breakdown</h4>
+            <div id="simResultOutput">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- BERC Official Slab Reference Table -->
+        <div class="berc-reference-table" style="margin-top: 1.5rem;">
+          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.5rem;"><i class="fa-solid fa-table-list"></i> BERC 2026 Official Residential Slab Steps</h4>
+          <table class="data-table" style="font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>Slab Step</th>
+                <th>Consumption Range</th>
+                <th>Energy Rate (BDT/kWh)</th>
+                <th>Demand Charge</th>
+                <th>Prepaid Rebate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Lifeline</td><td>0 - 50 Units</td><td class="text-emerald">5.32 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+              <tr><td>Slab 1</td><td>0 - 75 Units</td><td class="text-emerald">6.18 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+              <tr><td>Slab 2</td><td>76 - 200 Units</td><td>8.50 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+              <tr><td>Slab 3</td><td>201 - 300 Units</td><td>9.10 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+              <tr><td>Slab 4</td><td>301 - 400 Units</td><td>9.62 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+              <tr><td>Slab 5</td><td>401 - 600 Units</td><td class="text-warning">15.01 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+              <tr><td>Slab 6</td><td>> 600 Units</td><td class="text-danger">17.35 BDT</td><td>42 BDT/kW/mo</td><td>-0.5% Net</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Alert Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Custom Script -->
+  <script src="/js/globals.js"></script>
+  <script src="/js/berc.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/chart.js"></script>
+  <script src="/js/history.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "name": "DESCO Prepaid Meter Intelligence Dashboard",
+  "description": "Real-time monitoring dashboard for DESCO prepaid electricity meters with BERC 2026 tariff calculator, consumption analytics, and financial forecasting.",
+  "version": "1.0.0"
+}
