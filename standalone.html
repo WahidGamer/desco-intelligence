@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DESCO Prepaid Meter Intelligence Dashboard (Standalone)</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js & Annotation Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  
+  <style>
+/* ==========================================================================
+   DESCO PREPAID INTELLIGENCE DASHBOARD - STANDALONE GLASSMORPHISM STYLES
+   ========================================================================== */
+
+:root {
+  --bg-main: #090d16;
+  --bg-card: rgba(18, 24, 38, 0.75);
+  --bg-card-hover: rgba(28, 36, 56, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(59, 130, 246, 0.3);
+
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
+  --accent-purple: #8b5cf6;
+  --accent-amber: #f59e0b;
+
+  --glow-rose: rgba(244, 63, 94, 0.35);
+  --glow-emerald: rgba(16, 185, 129, 0.35);
+  --glow-blue: rgba(59, 130, 246, 0.35);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body.dark-theme {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  color-scheme: dark;
+}
+
+.ambient-glow {
+  position: fixed; border-radius: 50%; filter: blur(140px); z-index: 0; pointer-events: none; opacity: 0.25;
+}
+.glow-1 { width: 500px; height: 500px; background: var(--accent-blue); top: -100px; left: -100px; }
+.glow-2 { width: 450px; height: 450px; background: var(--accent-purple); bottom: 50px; right: -50px; }
+.glow-3 { width: 350px; height: 350px; background: var(--accent-cyan); top: 45%; left: 40%; }
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: var(--transition);
+}
+.glass-card:hover { border-color: rgba(255, 255, 255, 0.15); }
+
+.app-header {
+  position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 2rem; background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-glass);
+}
+.header-left .brand-logo { display: flex; align-items: center; gap: 0.8rem; }
+.brand-icon { font-size: 1.8rem; color: var(--accent-amber); filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6)); }
+.brand-text h1 { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; letter-spacing: 0.5px; }
+.brand-text h1 span { color: var(--accent-blue); }
+.brand-text .sub-tag { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+.header-center { flex: 1; max-width: 400px; margin: 0 1.5rem; }
+.global-search-box { position: relative; display: flex; align-items: center; }
+.global-search-box .search-icon { position: absolute; left: 1rem; color: var(--text-muted); }
+.global-search-box input {
+  width: 100%; padding: 0.65rem 1rem 0.65rem 2.6rem; background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass); border-radius: var(--radius-full); color: var(--text-primary);
+  font-size: 0.9rem; outline: none; transition: var(--transition);
+}
+.global-search-box input:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); background: rgba(255, 255, 255, 0.08); }
+
+.header-right { display: flex; align-items: center; gap: 0.8rem; }
+.status-indicator {
+  display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04); padding: 0.4rem 0.8rem; border-radius: var(--radius-full); border: 1px solid var(--border-glass);
+}
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; }
+.pulse-dot.green { background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald); }
+.pulse-dot.red { background: var(--accent-rose); box-shadow: 0 0 10px var(--accent-rose); animation: blink 1s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.time-badge {
+  font-family: monospace; font-size: 0.9rem; color: var(--accent-cyan); background: rgba(6, 182, 212, 0.1);
+  padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: var(--radius-sm);
+  font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; transition: var(--transition);
+}
+.btn-icon {
+  width: 38px; height: 38px; padding: 0; border-radius: 50%; justify-content: center;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-glass); color: var(--text-primary);
+}
+.btn-icon:hover { background: rgba(255, 255, 255, 0.12); color: var(--accent-blue); }
+.btn-primary { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); color: white; }
+.btn-primary:hover { box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); transform: translateY(-1px); }
+.btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-glass); color: var(--text-primary); }
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+.dashboard-container { max-width: 1440px; margin: 0 auto; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; }
+
+.accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+.account-card {
+  padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.25rem; position: relative; overflow: hidden;
+}
+.account-card.critical { border-color: rgba(244, 63, 94, 0.4); box-shadow: 0 0 25px rgba(244, 63, 94, 0.15); }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.meter-num { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+.tariff-pill {
+  font-size: 0.7rem; font-weight: 700; color: var(--accent-blue); background: rgba(59, 130, 246, 0.12);
+  padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.slab-step-pill {
+  font-size: 0.7rem; font-weight: 700; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.12);
+  padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.days-badge-wrapper { position: relative; display: inline-block; }
+.days-badge {
+  font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: var(--radius-full); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.35rem; transition: var(--transition);
+}
+.days-badge.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+.days-badge.yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+.days-badge.red { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.3); }
+
+.days-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; width: 280px; padding: 1rem; z-index: 50;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); border: 1px solid var(--border-glow);
+}
+.days-dropdown-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); }
+.days-dropdown-body .days-row { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); }
+.days-dropdown-body .days-row.highlight { color: var(--accent-emerald); font-weight: 700; border-top: 1px dashed var(--border-glass); padding-top: 0.4rem; margin-top: 0.4rem; }
+
+.card-balance-box { background: rgba(0, 0, 0, 0.2); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.04); }
+.balance-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.balance-amount { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; margin: 0.2rem 0; }
+.balance-amount.safe-text { color: var(--accent-emerald); text-shadow: 0 0 15px rgba(16, 185, 129, 0.25); }
+.balance-amount.critical-text { color: var(--accent-rose); text-shadow: 0 0 15px rgba(244, 63, 94, 0.35); }
+.reading-time { font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem; }
+
+.card-actions { display: flex; gap: 0.6rem; }
+.card-actions .btn { flex: 1; justify-content: center; }
+
+/* Analytics Section */
+.analytics-section { padding: 1.8rem; }
+.analytics-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.analytics-title { display: flex; align-items: center; gap: 0.8rem; }
+.analytics-title i { font-size: 1.5rem; color: var(--accent-cyan); }
+.analytics-title h2 { font-size: 1.3rem; font-weight: 700; font-family: var(--font-heading); }
+.analytics-title p { font-size: 0.8rem; color: var(--text-muted); }
+
+.custom-select {
+  background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-glass); color: var(--text-primary);
+  padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; outline: none; cursor: pointer;
+}
+.custom-select option { background: #121826; color: white; }
+
+.chart-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; background: rgba(0, 0, 0, 0.2); padding: 0.8rem 1.2rem; border-radius: var(--radius-sm); }
+.view-toggle { display: flex; background: rgba(255, 255, 255, 0.05); padding: 0.25rem; border-radius: var(--radius-sm); }
+.toggle-btn { padding: 0.4rem 1rem; border: none; background: transparent; color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; cursor: pointer; border-radius: var(--radius-sm); transition: var(--transition); }
+.toggle-btn.active { background: var(--accent-blue); color: white; }
+
+.picker-group { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.picker-group label { font-size: 0.8rem; color: var(--text-muted); }
+.date-selects { display: flex; gap: 0.3rem; }
+.quick-presets { display: flex; gap: 0.3rem; margin-left: 0.5rem; }
+.preset-btn, .monthly-preset-btn { padding: 0.35rem 0.65rem; font-size: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer; }
+.preset-btn.active, .monthly-preset-btn.active { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
+
+.chart-wrapper { height: 320px; position: relative; margin-bottom: 1rem; }
+
+/* Slab Proximity Tracker */
+.slab-proximity-card { padding: 1.25rem; margin-bottom: 1.5rem; }
+.slab-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+.slab-stat-card { padding: 1rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border: 1px solid var(--border-glass); }
+.slab-tag-pill { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.3rem; }
+.slab-tag-pill.purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+.slab-tag-pill.emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+.slab-tag-pill.amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+.slab-stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.slab-rate-label { font-size: 0.75rem; color: var(--text-muted); }
+.slab-stat-value { font-size: 1.3rem; font-weight: 800; font-family: var(--font-heading); margin: 0.2rem 0; }
+.slab-stat-sub { font-size: 0.75rem; color: var(--text-secondary); }
+
+.slab-progress-container { margin-top: 1rem; }
+.slab-progress-bar-wrapper { position: relative; height: 14px; background: rgba(255,255,255,0.06); border-radius: 7px; overflow: visible; margin-bottom: 0.5rem; }
+.slab-track-bg { position: absolute; inset: 0; border-radius: 7px; background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #f59e0b 80%, #f43f5e 100%); opacity: 0.2; }
+.slab-progress-fill { height: 100%; border-radius: 7px; background: linear-gradient(90deg, #10b981, #3b82f6); transition: width 0.5s ease; }
+.slab-indicator-line { position: absolute; top: -4px; width: 2px; height: 22px; background: rgba(255,255,255,0.4); }
+.slab-indicator-line.line-user { background: var(--accent-amber); width: 3px; z-index: 10; }
+.user-pin-tag { position: absolute; bottom: calc(100% + 4px); transform: translateX(-50%); background: var(--accent-amber); color: black; font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 4px; white-space: nowrap; }
+.slab-progress-footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+
+.chart-metrics-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: var(--radius-sm); }
+.metric-item { display: flex; flex-direction: column; gap: 0.2rem; }
+.metric-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+.metric-val { font-size: 1rem; font-weight: 700; font-family: var(--font-heading); }
+
+.summary-banner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+@media (max-width: 900px) { .summary-banner { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .summary-banner { grid-template-columns: 1fr; } }
+.summary-card { padding: 1.2rem; display: flex; align-items: center; gap: 1rem; }
+.card-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; }
+.card-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+.card-icon.emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+.card-info { flex: 1; display: flex; flex-direction: column; }
+.card-info .card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+.card-info h2 { font-size: 1.4rem; font-weight: 800; font-family: var(--font-heading); margin-top: 0.1rem; }
+.currency { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+
+/* Modals */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+.modal-overlay.hidden { display: none; }
+.modal-content { width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; padding: 1.5rem; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.btn-close, .close-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+.btn-close:hover, .close-btn:hover { color: var(--text-primary); }
+
+.data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+.data-table th, .data-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-glass); }
+.data-table th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+
+.toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.8rem; }
+.toast { padding: 0.8rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.toast-success { background: #064e3b; color: #a7f3d0; border: 1px solid #10b981; }
+.toast-danger { background: #881337; color: #fecdd3; border: 1px solid #f43f5e; }
+.toast-info { background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; }
+
+.text-emerald { color: var(--accent-emerald) !important; }
+.text-blue { color: var(--accent-blue) !important; }
+.text-warning { color: var(--accent-amber) !important; }
+.text-danger { color: var(--accent-rose) !important; }
+.hidden { display: none !important; }
+  </style>
+</head>
+<body class="dark-theme">
+
+  <!-- Ambient Glow Backgrounds -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo">
+        <i class="fa-solid fa-bolt-lightning brand-icon"></i>
+        <div class="brand-text">
+          <h1>DESCO <span>PREPAID</span></h1>
+          <span class="sub-tag">Standalone Intelligence v2.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="global-search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="globalSearch" placeholder="Search account name, meter no...">
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="btn btn-secondary btn-sm" id="btnManageAccounts" title="Configure Account Numbers">
+        <i class="fa-solid fa-user-gear text-emerald"></i> <span>Manage Accounts</span>
+      </button>
+      <button class="btn btn-secondary btn-sm" id="btnOpenBercCalc" title="BERC 2026 Tariff Simulator">
+        <i class="fa-solid fa-calculator text-emerald"></i> <span>BERC 2026</span>
+      </button>
+      <button class="btn btn-icon" id="btnRefreshAll" title="Refresh All Accounts">
+        <i class="fa-solid fa-rotate-right" id="refreshSpin"></i>
+      </button>
+      <div class="time-badge" id="liveClock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="dashboard-container">
+
+    <!-- Accounts Grid -->
+    <section class="accounts-section">
+      <div class="accounts-grid" id="accountsGrid">
+        <!-- Cards rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section class="analytics-section glass-card">
+      <div class="analytics-header">
+        <div class="analytics-title">
+          <i class="fa-solid fa-chart-line"></i>
+          <div>
+            <h2>Unit Consumption & Usage Intelligence</h2>
+            <p>Analyze daily and monthly energy consumption</p>
+          </div>
+        </div>
+
+        <div class="account-selector-wrapper">
+          <label for="chartAccountSelect"><i class="fa-solid fa-user-gear"></i> Target Account:</label>
+          <select id="chartAccountSelect" class="custom-select"></select>
+        </div>
+      </div>
+
+      <!-- Controls Toolbar -->
+      <div class="chart-toolbar">
+        <div class="view-toggle">
+          <button class="toggle-btn active" id="btnDailyView"><i class="fa-solid fa-calendar-day"></i> Daily Units</button>
+          <button class="toggle-btn" id="btnMonthlyView"><i class="fa-solid fa-calendar-days"></i> Monthly Units</button>
+        </div>
+
+        <div class="picker-group" id="dailyPickerGroup">
+          <label>From:</label>
+          <div class="date-selects">
+            <select id="dailyFromDay" class="custom-select"></select>
+            <select id="dailyFromMonth" class="custom-select"></select>
+            <select id="dailyFromYear" class="custom-select"></select>
+          </div>
+          <label>To:</label>
+          <div class="date-selects">
+            <select id="dailyToDay" class="custom-select"></select>
+            <select id="dailyToMonth" class="custom-select"></select>
+            <select id="dailyToYear" class="custom-select"></select>
+          </div>
+          <div class="quick-presets">
+            <button class="preset-btn" data-days="7">7D</button>
+            <button class="preset-btn active" data-days="30">30D</button>
+            <button class="preset-btn" data-days="90">90D</button>
+          </div>
+        </div>
+
+        <div class="picker-group hidden" id="monthlyPickerGroup">
+          <label>From Month:</label>
+          <div class="date-selects">
+            <select id="monthlyFromMonth" class="custom-select"></select>
+            <select id="monthlyFromYear" class="custom-select"></select>
+          </div>
+          <label>To Month:</label>
+          <div class="date-selects">
+            <select id="monthlyToMonth" class="custom-select"></select>
+            <select id="monthlyToYear" class="custom-select"></select>
+          </div>
+          <div class="quick-presets">
+            <button class="monthly-preset-btn" data-months="3">3M</button>
+            <button class="monthly-preset-btn active" data-months="6">6M</button>
+            <button class="monthly-preset-btn" data-months="12">12M</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slab Proximity Tracker -->
+      <div class="slab-proximity-card glass-card" id="slabProximitySection">
+        <div class="slab-cards-grid">
+          <div class="slab-stat-card prev-slab-card">
+            <div class="slab-stat-header">
+              <span class="slab-tag-pill purple"><i class="fa-solid fa-backward"></i> Previous Limit</span>
+              <span class="slab-rate-label" id="prevSlabRateLabel">Slab 1 @ 6.18 Tk</span>
+            </div>
+            <div class="slab-stat-value" id="prevSlabValDisplay">75.0 <span class="unit">kWh/mo</span></div>
+            <div class="slab-stat-sub" id="prevSlabSubText">Threshold Passed</div>
+          </div>
+
+          <div class="slab-stat-card curr-slab-card">
+            <div class="slab-stat-header">
+              <span class="slab-tag-pill emerald"><i class="fa-solid fa-bullseye"></i> Current Limit</span>
+              <span class="slab-rate-label" id="currSlabRateLabel">Slab 2 @ 8.50 Tk</span>
+            </div>
+            <div class="slab-stat-value text-emerald" id="currSlabValDisplay">200.0 <span class="unit">kWh/mo</span></div>
+            <div class="slab-stat-sub" id="currSlabSubText">57.5 kWh Remaining</div>
+          </div>
+
+          <div class="slab-stat-card next-slab-card">
+            <div class="slab-stat-header">
+              <span class="slab-tag-pill amber"><i class="fa-solid fa-forward"></i> Next Limit</span>
+              <span class="slab-rate-label" id="nextSlabRateLabel">Slab 3 @ 9.10 Tk</span>
+            </div>
+            <div class="slab-stat-value text-warning" id="nextSlabValDisplay">300.0 <span class="unit">kWh/mo</span></div>
+            <div class="slab-stat-sub" id="nextSlabSubText">157.5 kWh to Next Step</div>
+          </div>
+        </div>
+
+        <div class="slab-progress-container">
+          <div class="slab-progress-bar-wrapper">
+            <div class="slab-track-bg"></div>
+            <div class="slab-progress-fill" id="slabProgressFill" style="width: 50%;"></div>
+            <div class="slab-indicator-line line-prev" id="linePrev" style="left: 0%;"></div>
+            <div class="slab-indicator-line line-curr" id="lineCurr" style="left: 60%;"></div>
+            <div class="slab-indicator-line line-user" id="lineUser" style="left: 50%;">
+              <div class="user-pin-tag" id="userPinTag">You (142.5)</div>
+            </div>
+            <div class="slab-indicator-line line-next" id="lineNext" style="left: 100%;"></div>
+          </div>
+          <div class="slab-progress-footer">
+            <span id="slabProgressStart">0 kWh (Prev)</span>
+            <span id="slabProgressCenterStatus" class="text-emerald" style="font-weight: 600;">-- / -- kWh used</span>
+            <span id="slabProgressEnd">300.0 kWh (Next)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Container -->
+      <div class="chart-wrapper" style="overflow-x: auto;">
+        <div style="min-width: max(100%, 600px); height: 100%;">
+          <canvas id="consumptionChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart Metrics Summary Bar -->
+      <div class="chart-metrics-bar">
+        <div class="metric-item">
+          <span class="metric-label">Recharged Month</span>
+          <span class="metric-val text-emerald" id="metricRechargedMonth">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Recharged Year</span>
+          <span class="metric-val text-blue" id="metricRechargedYear">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Total Cost (Period)</span>
+          <span class="metric-val" id="metricTotalCost" style="color: #f59e0b;">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Daily Cost</span>
+          <span class="metric-val" id="metricAvgCost" style="color: #f59e0b;">0.00 BDT/day</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Monthly Cost</span>
+          <span class="metric-val text-emerald" id="metricAvgMonthlyCost">0.00 BDT/mo</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Proj. Month End</span>
+          <span class="metric-val text-emerald" id="metricProjectedMonthlyCost">0.00 BDT</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Yearly Cost</span>
+          <span class="metric-val text-blue" id="metricAvgYearlyCost">0.00 BDT/yr</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Proj. Year End</span>
+          <span class="metric-val" id="metricProjectedYearlyCost" style="color: #a855f7;">0.00 BDT</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portfolio Summary -->
+    <section class="summary-banner">
+      <div class="summary-card glass-card">
+        <div class="card-icon blue"><i class="fa-solid fa-wallet"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total Balance</span>
+          <h2 id="totalBalanceVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon emerald"><i class="fa-solid fa-charging-station"></i></div>
+        <div class="card-info">
+          <span class="card-label">Month Recharges</span>
+          <h2 id="totalMonthRechargeVal">--.-- <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon cyan" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total AVG Monthly Cost</span>
+          <h2 id="totalAvgMonthlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon amber" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total PROJ. Monthly Cost</span>
+          <h2 id="totalProjMonthlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon blue"><i class="fa-solid fa-calculator"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total AVG Yearly Cost</span>
+          <h2 id="totalAvgYearlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+
+      <div class="summary-card glass-card">
+        <div class="card-icon purple" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="card-info">
+          <span class="card-label">Total PROJ. Yearly Cost</span>
+          <h2 id="totalProjYearlyCostVal">0.00 <span class="currency">BDT</span></h2>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Account Management -->
+  <div class="modal-overlay hidden" id="manageAccountsModal">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h3><i class="fa-solid fa-user-gear text-emerald"></i> Configure DESCO Accounts</h3>
+          <span class="sub-tag">Saved locally in your browser storage</span>
+        </div>
+        <button class="btn-close" id="btnCloseAccountsModal">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 1rem; display: flex; flex-direction: column;">
+        <div style="font-size:0.85rem; color:var(--text-secondary);">
+          Add or update DESCO account numbers to monitor. Changes save instantly to your browser's local storage.
+        </div>
+        
+        <div id="accountsFormList" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <!-- Populated by JS -->
+        </div>
+
+        <div style="display:flex; justify-content:space-between; gap:1rem; margin-top:0.5rem;">
+          <button class="btn btn-secondary btn-sm" id="btnAddAccountRow"><i class="fa-solid fa-plus"></i> Add Account</button>
+          <button class="btn btn-primary btn-sm" id="btnSaveAccounts"><i class="fa-solid fa-floppy-disk"></i> Save & Refresh Dashboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: History -->
+  <div class="modal-overlay hidden" id="historyModal">
+    <div class="modal-content glass-card wide-modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <div>
+            <h3 id="modalAccountName">Account Recharge History</h3>
+            <span class="sub-tag" id="modalAccountSub">--</span>
+          </div>
+        </div>
+        <div class="modal-actions" style="display:flex; gap:0.5rem;">
+          <button class="btn btn-sm btn-secondary" id="btnExportCSV"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          <button class="btn-close" id="btnCloseHistoryModal">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <input type="text" id="historySearch" placeholder="Filter by Token or Amount..." class="global-search-box" style="width: 100%; margin-bottom:1rem; padding:0.6rem 1rem;">
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Recharge Date & Time</th>
+                <th>Total BDT</th>
+                <th>Net Amount</th>
+                <th>VAT</th>
+                <th>Meter Rent</th>
+                <th>Token Number</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: BERC Simulator -->
+  <div class="modal-overlay hidden" id="bercModal">
+    <div class="modal-content glass-card wide-modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-calculator text-emerald"></i>
+          <div>
+            <h3>BERC Official 2026 Electricity Tariff Calculator</h3>
+            <span class="sub-tag">June 2026 Rates, Slab Breakdown & Bill Simulator</span>
+          </div>
+        </div>
+        <button class="btn-close" id="btnCloseBercModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <div class="glass-card" style="padding: 1.25rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--accent-cyan);"><i class="fa-solid fa-sliders"></i> Parameters</h4>
+            
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Category</label>
+              <select id="simCategory" class="custom-select" style="width:100%;">
+                <option value="LT-A">LT-A: Residential</option>
+                <option value="LT-E">LT-E: Commercial</option>
+                <option value="LT-C1">LT-C1: Small Industry</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Monthly Units (kWh)</label>
+              <input type="number" id="simUnits" value="250" class="custom-select" style="width: 100%;" placeholder="e.g. 250">
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <label style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem;">Sanctioned Load (kW)</label>
+              <input type="number" id="simLoad" value="2" class="custom-select" style="width: 100%;" placeholder="e.g. 2">
+            </div>
+
+            <button class="btn btn-primary" id="btnCalculateSim" style="width: 100%; justify-content: center;">
+              <i class="fa-solid fa-calculator"></i> Calculate Detailed Bill
+            </button>
+          </div>
+
+          <div class="glass-card" style="padding: 1.25rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--accent-blue);"><i class="fa-solid fa-receipt"></i> Projected Bill Breakdown</h4>
+            <div id="simResultOutput"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- STANDALONE JS SCRIPT BUNDLE -->
+  <script>
+  /* ==========================================================================
+     STANDALONE SCRIPT BUNDLE (NO NODE.JS / NO SERVER REQUIRED)
+     ========================================================================== */
+
+  // 1. DEFAULT ACCOUNTS CONFIG (FALLBACK FOR FIRST TIME VISIT)
+  const DEFAULT_ACCOUNTS = {
+    '1st': '21007757',
+    '2nd': '34113471',
+    '3rd-1': '21007685',
+    '3rd-2': '34113481',
+    '4th': '34113501'
+  };
+
+  const STORAGE_KEY = 'desco_accounts_config_v1';
+  const METRICS_CACHE_KEY = 'desco_metrics_cache_v1';
+
+  function getSavedAccounts() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_e) {}
+    return { ...DEFAULT_ACCOUNTS };
+  }
+
+  function saveAccounts(accountsMap) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accountsMap));
+  }
+
+  // 2. CORS PROXY FETCH ENGINE
+  // Directly fetches DESCO REST API endpoints through CORS proxies
+  const DESCO_API_BASE = 'https://prepaid.desco.org.bd/api/tkdes/customer';
+
+  async function fetchDescoApi(path) {
+    const targetUrl = `${DESCO_API_BASE}${path}`;
+    
+    // List of CORS proxy fallbacks
+    const proxies = [
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://thingproxy.freeboard.io/fetch/${url}`
+    ];
+
+    // Try direct fetch first
+    try {
+      const res = await fetch(targetUrl, { signal: AbortSignal.timeout(4000) });
+      if (res.ok) return await res.json();
+    } catch (_e) {}
+
+    // Try proxies sequentially
+    for (const proxyFn of proxies) {
+      try {
+        const proxyUrl = proxyFn(targetUrl);
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(9000) });
+        if (res.ok) {
+          const text = await res.text();
+          const json = JSON.parse(text);
+          if (json) return json;
+        }
+      } catch (_e) {}
+    }
+    throw new Error('Could not connect to DESCO servers via proxy');
+  }
+
+  // 3. APP GLOBALS & STATE
+  let accountsSummaryData = [];
+  let activeFilter = 'all';
+  let consumptionChart = null;
+  let currentChartType = 'daily';
+  let currentChartAccountNo = null;
+
+  const elements = {
+    liveClock: document.getElementById('liveClock'),
+    globalSearch: document.getElementById('globalSearch'),
+    btnRefreshAll: document.getElementById('btnRefreshAll'),
+    refreshSpin: document.getElementById('refreshSpin'),
+    accountsGrid: document.getElementById('accountsGrid'),
+    totalBalanceVal: document.getElementById('totalBalanceVal'),
+    totalMonthRechargeVal: document.getElementById('totalMonthRechargeVal'),
+    chartAccountSelect: document.getElementById('chartAccountSelect'),
+    btnDailyView: document.getElementById('btnDailyView'),
+    btnMonthlyView: document.getElementById('btnMonthlyView'),
+    dailyPickerGroup: document.getElementById('dailyPickerGroup'),
+    monthlyPickerGroup: document.getElementById('monthlyPickerGroup'),
+    dailyFromDay: document.getElementById('dailyFromDay'),
+    dailyFromMonth: document.getElementById('dailyFromMonth'),
+    dailyFromYear: document.getElementById('dailyFromYear'),
+    dailyToDay: document.getElementById('dailyToDay'),
+    dailyToMonth: document.getElementById('dailyToMonth'),
+    dailyToYear: document.getElementById('dailyToYear'),
+    monthlyFromMonth: document.getElementById('monthlyFromMonth'),
+    monthlyFromYear: document.getElementById('monthlyFromYear'),
+    monthlyToMonth: document.getElementById('monthlyToMonth'),
+    monthlyToYear: document.getElementById('monthlyToYear'),
+    historyModal: document.getElementById('historyModal'),
+    btnCloseHistoryModal: document.getElementById('btnCloseHistoryModal'),
+    btnExportCSV: document.getElementById('btnExportCSV'),
+    historyTableBody: document.getElementById('historyTableBody'),
+    historySearch: document.getElementById('historySearch'),
+    toastContainer: document.getElementById('toastContainer'),
+    metricRechargedMonth: document.getElementById('metricRechargedMonth'),
+    metricRechargedYear: document.getElementById('metricRechargedYear'),
+    metricTotalCost: document.getElementById('metricTotalCost'),
+    metricAvgCost: document.getElementById('metricAvgCost'),
+    metricAvgMonthlyCost: document.getElementById('metricAvgMonthlyCost'),
+    metricProjectedMonthlyCost: document.getElementById('metricProjectedMonthlyCost'),
+    metricAvgYearlyCost: document.getElementById('metricAvgYearlyCost'),
+    metricProjectedYearlyCost: document.getElementById('metricProjectedYearlyCost'),
+    totalAvgMonthlyCostVal: document.getElementById('totalAvgMonthlyCostVal'),
+    totalProjMonthlyCostVal: document.getElementById('totalProjMonthlyCostVal'),
+    totalAvgYearlyCostVal: document.getElementById('totalAvgYearlyCostVal'),
+    totalProjYearlyCostVal: document.getElementById('totalProjYearlyCostVal'),
+    btnOpenBercCalc: document.getElementById('btnOpenBercCalc'),
+    bercModal: document.getElementById('bercModal'),
+    btnCloseBercModal: document.getElementById('btnCloseBercModal'),
+    simCategory: document.getElementById('simCategory'),
+    simUnits: document.getElementById('simUnits'),
+    simLoad: document.getElementById('simLoad'),
+    btnCalculateSim: document.getElementById('btnCalculateSim'),
+    simResultOutput: document.getElementById('simResultOutput'),
+    btnManageAccounts: document.getElementById('btnManageAccounts'),
+    manageAccountsModal: document.getElementById('manageAccountsModal'),
+    btnCloseAccountsModal: document.getElementById('btnCloseAccountsModal'),
+    accountsFormList: document.getElementById('accountsFormList'),
+    btnAddAccountRow: document.getElementById('btnAddAccountRow'),
+    btnSaveAccounts: document.getElementById('btnSaveAccounts')
+  };
+
+  // 4. BERC TARIFF ENGINE
+  function calculateBercBill(category, units, load = 2) {
+    units = Math.max(0, parseFloat(units) || 0);
+    load = Math.max(0.5, parseFloat(load) || 1);
+
+    let energyCharge = 0, demandRate = 42, activeSlab = 'N/A', slabDetails = [];
+
+    if (category === 'LT-A') {
+      demandRate = 42;
+      if (units <= 50) {
+        energyCharge = units * 5.32;
+        activeSlab = 'Lifeline (5.32 BDT)';
+        slabDetails.push({ name: 'Lifeline (0-50)', units, rate: 5.32, total: energyCharge });
+      } else {
+        let u = units;
+        const s1 = Math.min(u, 75);
+        if (s1 > 0) { const c = s1 * 6.18; energyCharge += c; slabDetails.push({ name: 'Slab 1 (0-75)', units: s1, rate: 6.18, total: c }); u -= s1; }
+        if (u > 0) { const s2 = Math.min(u, 125); const c = s2 * 8.50; energyCharge += c; slabDetails.push({ name: 'Slab 2 (76-200)', units: s2, rate: 8.50, total: c }); u -= s2; }
+        if (u > 0) { const s3 = Math.min(u, 100); const c = s3 * 9.10; energyCharge += c; slabDetails.push({ name: 'Slab 3 (201-300)', units: s3, rate: 9.10, total: c }); u -= s3; }
+        if (u > 0) { const s4 = Math.min(u, 100); const c = s4 * 9.62; energyCharge += c; slabDetails.push({ name: 'Slab 4 (301-400)', units: s4, rate: 9.62, total: c }); u -= s4; }
+        if (u > 0) { const s5 = Math.min(u, 200); const c = s5 * 15.01; energyCharge += c; slabDetails.push({ name: 'Slab 5 (401-600)', units: s5, rate: 15.01, total: c }); u -= s5; }
+        if (u > 0) { const c = u * 17.35; energyCharge += c; slabDetails.push({ name: 'Slab 6 (>600)', units: u, rate: 17.35, total: c }); }
+
+        if (units <= 75) activeSlab = 'Slab 1 (6.18 BDT)';
+        else if (units <= 200) activeSlab = 'Slab 2 (8.50 BDT)';
+        else if (units <= 300) activeSlab = 'Slab 3 (9.10 BDT)';
+        else if (units <= 400) activeSlab = 'Slab 4 (9.62 BDT)';
+        else if (units <= 600) activeSlab = 'Slab 5 (15.01 BDT)';
+        else activeSlab = 'Slab 6 (17.35 BDT)';
+      }
+    } else if (category === 'LT-E') {
+      demandRate = 90; energyCharge = units * 15.36; activeSlab = 'Flat (15.36 BDT)';
+      slabDetails.push({ name: 'Flat Commercial', units, rate: 15.36, total: energyCharge });
+    } else if (category === 'LT-C1') {
+      demandRate = 88; energyCharge = units * 12.73; activeSlab = 'Flat (12.73 BDT)';
+      slabDetails.push({ name: 'Small Industry', units, rate: 12.73, total: energyCharge });
+    }
+
+    const demandCharge = load * demandRate;
+    const grossSubTotal = energyCharge + demandCharge;
+    const prepaidRebate = grossSubTotal * 0.005;
+    const netBill = grossSubTotal - prepaidRebate;
+    const vat = netBill * 0.05;
+    const totalBill = netBill + vat;
+
+    return { units, energyCharge, demandCharge, grossSubTotal, prepaidRebate, netBill, vat, totalBill, activeSlab, slabDetails };
+  }
+
+  function invertBercBill(totalNetBill, category = 'LT-A', load = 2) {
+    totalNetBill = Math.max(0, parseFloat(totalNetBill) || 0);
+    load = Math.max(0.5, parseFloat(load) || 1);
+    let demandRate = category === 'LT-E' ? 90 : category === 'LT-C1' ? 88 : 42;
+
+    const grossSubTotal = totalNetBill / 1.04475;
+    const demandCharge = load * demandRate;
+    let energyCharge = Math.max(0, grossSubTotal - demandCharge);
+
+    if (category === 'LT-E') return energyCharge / 15.36;
+    if (category === 'LT-C1') return energyCharge / 12.73;
+
+    if (energyCharge <= 266) return energyCharge / 5.32;
+    if (energyCharge <= 463.5) return energyCharge / 6.18;
+    if (energyCharge <= 1526) return 75 + (energyCharge - 463.5) / 8.50;
+    if (energyCharge <= 2436) return 200 + (energyCharge - 1526) / 9.10;
+    if (energyCharge <= 3398) return 300 + (energyCharge - 2436) / 9.62;
+    if (energyCharge <= 6400) return 400 + (energyCharge - 3398) / 15.01;
+    return 600 + (energyCharge - 6400) / 17.35;
+  }
+
+  function runBercSimulation() {
+    if (!elements.simResultOutput) return;
+    const cat = elements.simCategory.value || 'LT-A';
+    const units = parseFloat(elements.simUnits.value) || 0;
+    const load = parseFloat(elements.simLoad.value) || 1;
+    const res = calculateBercBill(cat, units, load);
+
+    let slabsHTML = res.slabDetails.map(s => `
+      <div style="font-size:0.8rem; display:flex; justify-content:space-between; margin-bottom:3px; color:var(--text-secondary);">
+        <span>${s.name}: ${s.units.toFixed(1)} kWh @ ${s.rate.toFixed(2)} Tk</span>
+        <span style="font-family:monospace;">${s.total.toFixed(2)} BDT</span>
+      </div>
+    `).join('');
+
+    elements.simResultOutput.innerHTML = `
+      <div class="days-row"><label>Active Step Slab</label><val class="text-emerald">${res.activeSlab}</val></div>
+      <div style="background:rgba(0,0,0,0.25); padding:0.6rem; border-radius:8px; margin: 0.6rem 0; border: 1px solid var(--border-glass);">
+        <div style="font-size:0.75rem; color:var(--accent-cyan); margin-bottom:4px; font-weight:700;">SLAB STEP BREAKDOWN:</div>
+        ${slabsHTML}
+      </div>
+      <div class="days-row"><label>Energy Charge Subtotal</label><val>${res.energyCharge.toFixed(2)} BDT</val></div>
+      <div class="days-row"><label>Demand Charge (${load} kW @ ${res.demandCharge/load} Tk)</label><val>${res.demandCharge.toFixed(2)} BDT</val></div>
+      <div class="days-row"><label>Prepaid Rebate (-0.5%)</label><val class="text-emerald">-${res.prepaidRebate.toFixed(2)} BDT</val></div>
+      <div class="days-row"><label>Government VAT (+5%)</label><val>${res.vat.toFixed(2)} BDT</val></div>
+      <div class="days-row" style="border-top: 2px solid var(--accent-blue); padding-top:0.6rem; margin-top:0.4rem;">
+        <label style="color:var(--text-primary); font-weight:700;">Total Net Bill</label>
+        <val class="text-emerald" style="font-size:1.25rem; font-weight:800;">${res.totalBill.toFixed(2)} BDT</val>
+      </div>
+    `;
+  }
+
+  // 5. FETCH & DATA LOADING LOGIC
+  async function loadDashboardData() {
+    elements.refreshSpin.classList.add('fa-spin');
+    showShimmerGrid();
+
+    const accountsMap = getSavedAccounts();
+    const entries = Object.entries(accountsMap);
+
+    if (entries.length === 0) {
+      showToast('No accounts configured. Click "Manage Accounts" to add.', 'info');
+      elements.accountsGrid.innerHTML = `<div class="glass-card" style="padding:2rem; text-align:center; grid-column:1/-1;">No accounts configured. Click "Manage Accounts" above.</div>`;
+      elements.refreshSpin.classList.remove('fa-spin');
+      return;
+    }
+
+    try {
+      const results = await Promise.all(
+        entries.map(async ([name, accountNo]) => {
+          try {
+            const [balanceRes, infoRes] = await Promise.allSettled([
+              fetchDescoApi(`/getBalance?accountNo=${accountNo}&meterNo=`),
+              fetchDescoApi(`/getCustomerInfo?accountNo=${accountNo}&meterNo=`)
+            ]);
+
+            let balanceData = balanceRes.status === 'fulfilled' && balanceRes.value ? (balanceRes.value.data || balanceRes.value) : null;
+            let infoData = infoRes.status === 'fulfilled' && infoRes.value ? (infoRes.value.data || infoRes.value) : null;
+
+            let remainingBalance = null, readingTime = null;
+            if (balanceData && (balanceData.balance !== undefined || balanceData.remainingBalance !== undefined)) {
+              remainingBalance = parseFloat(balanceData.balance !== undefined ? balanceData.balance : balanceData.remainingBalance);
+              readingTime = balanceData.readingTime || balanceData.lastReadingDate || null;
+            }
+
+            return {
+              name, accountNo,
+              meterNo: balanceData?.meterNo || infoData?.meterNo || 'N/A',
+              customerName: infoData?.customerName || infoData?.name || balanceData?.customerName || name.toUpperCase(),
+              remainingBalance, readingTime,
+              tariffName: infoData?.tariffSolution || infoData?.tariffName || infoData?.tariff || 'A-Residential',
+              sanctionLoad: infoData?.sanctionLoad || infoData?.sanctionedLoad || 'N/A',
+              address: infoData?.installationAddress || infoData?.address || 'N/A',
+              isCritical: remainingBalance !== null && remainingBalance < 100,
+              status: 'success'
+            };
+          } catch (err) {
+            return {
+              name, accountNo, meterNo: 'N/A', customerName: name.toUpperCase(),
+              remainingBalance: null, readingTime: null, tariffName: 'A-Residential',
+              sanctionLoad: 'N/A', address: 'N/A', isCritical: false, status: 'error', error: err.message
+            };
+          }
+        })
+      );
+
+      accountsSummaryData = results;
+      renderAccountsGrid();
+      updatePortfolioSummary();
+      populateChartAccountDropdown();
+      fetchRechargeSummariesAsync();
+      showToast('Meter balances updated', 'success');
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'danger');
+    } finally {
+      elements.refreshSpin.classList.remove('fa-spin');
+    }
+  }
+
+  function showShimmerGrid() {
+    elements.accountsGrid.innerHTML = Array(5).fill(0).map(() => `
+      <div class="account-card glass-card">
+        <div style="width: 60%; height: 24px; background: rgba(255,255,255,0.05); border-radius: 4px;"></div>
+        <div style="width: 100%; height: 60px; margin: 10px 0; background: rgba(255,255,255,0.05); border-radius: 4px;"></div>
+        <div style="width: 80%; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px;"></div>
+      </div>
+    `).join('');
+  }
+
+  async function fetchRechargeSummariesAsync() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYearMonthPrefix = `${currentYear}-${currentMonth}`;
+
+    for (const acc of accountsSummaryData) {
+      try {
+        const yearStart = `${currentYear}-01-01`;
+        const todayStr = now.toISOString().split('T')[0];
+        const tenDaysAgo = new Date(now.getTime() - (10 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
+        const [historyRes, dailyRes] = await Promise.allSettled([
+          fetchDescoApi(`/getRechargeHistory?accountNo=${acc.accountNo}&meterNo=&dateFrom=${yearStart}&dateTo=${todayStr}`),
+          fetchDescoApi(`/getCustomerDailyConsumption?accountNo=${acc.accountNo}&meterNo=&dateFrom=${tenDaysAgo}&dateTo=${todayStr}`)
+        ]);
+
+        let records = historyRes.status === 'fulfilled' && historyRes.value ? (historyRes.value.data || historyRes.value || []) : [];
+        if (records.data && Array.isArray(records.data)) records = records.data;
+
+        let rechargedThisMonth = 0, rechargedThisYear = 0;
+        records.forEach(item => {
+          const amount = parseFloat(item.totalAmount || item.amount || item.rechargeAmount || 0);
+          const dateStr = item.payDate || item.rechargeDate || item.date || '';
+          if (dateStr.startsWith(String(currentYear))) rechargedThisYear += amount;
+          if (dateStr.startsWith(currentYearMonthPrefix)) rechargedThisMonth += amount;
+        });
+
+        acc.rechargedThisMonth = rechargedThisMonth;
+        acc.rechargedThisYear = rechargedThisYear;
+
+        if (dailyRes.status === 'fulfilled' && dailyRes.value) {
+          const rawDaily = dailyRes.value.data || dailyRes.value || [];
+          if (Array.isArray(rawDaily) && rawDaily.length > 0) {
+            const rawTaka = rawDaily.map(i => parseFloat(i.consumedTaka || i.taka || i.amount || 0));
+            const last5 = rawTaka.slice(-5).filter(t => t > 0);
+            if (last5.length > 0) {
+              acc.last5DaysAvgCost = parseFloat((last5.reduce((a, b) => a + b, 0) / last5.length).toFixed(2));
+            }
+          }
+        }
+
+        updateAccountDaysLeft(acc.accountNo);
+        updatePortfolioSummary();
+        if (acc.accountNo === currentChartAccountNo) updateMeterProjections(currentChartAccountNo);
+      } catch (_e) {}
+    }
+  }
+
+  // 6. UI RENDERERS
+  function renderAccountsGrid() {
+    const searchTerm = (elements.globalSearch.value || '').toLowerCase().trim();
+    const filtered = accountsSummaryData.filter(acc => {
+      const matchesSearch = (acc.name || '').toLowerCase().includes(searchTerm) ||
+                            (acc.accountNo || '').toLowerCase().includes(searchTerm) ||
+                            (acc.meterNo || '').toLowerCase().includes(searchTerm);
+      if (!matchesSearch) return false;
+      if (activeFilter === 'critical') return acc.isCritical;
+      if (activeFilter === 'safe') return !acc.isCritical;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      elements.accountsGrid.innerHTML = `
+        <div class="glass-card" style="grid-column: 1/-1; padding: 3rem; text-align: center; color: var(--text-muted);">
+          <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+          <p>No accounts match your query.</p>
+        </div>
+      `;
+      return;
+    }
+
+    elements.accountsGrid.innerHTML = filtered.map(acc => {
+      const hasBalance = (acc.remainingBalance !== null && acc.remainingBalance !== undefined && !isNaN(acc.remainingBalance));
+      const balanceText = hasBalance ? acc.remainingBalance.toFixed(2) : 'N/A';
+      const isCritical = acc.isCritical;
+      const balanceClass = isCritical ? 'critical-text' : 'safe-text';
+      const cardClass = isCritical ? 'account-card glass-card critical' : 'account-card glass-card';
+
+      let estDaysBadge = '';
+      if (hasBalance) {
+        const dayOfMonth = new Date().getDate();
+        const monthBurnRate = acc.rechargedThisMonth ? (acc.rechargedThisMonth / dayOfMonth) : 40;
+        const realDailyCost = (acc.last5DaysAvgCost && acc.last5DaysAvgCost > 0) ? acc.last5DaysAvgCost : monthBurnRate;
+        const estDays = Math.max(0, Math.ceil(acc.remainingBalance / (realDailyCost > 0 ? realDailyCost : 40)));
+        const badgeClass = estDays < 3 ? 'red' : estDays < 7 ? 'yellow' : 'green';
+        estDaysBadge = `
+          <span class="days-badge ${badgeClass}" id="days-badge-${acc.accountNo}">
+            <i class="fa-solid fa-hourglass-half"></i> ~${estDays}d left
+          </span>
+        `;
+      }
+
+      return `
+        <div class="${cardClass}" id="card-${acc.accountNo}">
+          <div class="card-top">
+            <div style="width:100%;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
+                <h3 style="font-size:1.3rem; font-weight:800; font-family:var(--font-heading);">${acc.name}</h3>
+                ${estDaysBadge}
+              </div>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.35rem;">
+                <span class="tariff-pill">${(acc.tariffName || 'A-Residential').replace('Category-A: ', '')}</span>
+              </div>
+              <div class="meter-num">Account: <strong>${acc.accountNo}</strong></div>
+            </div>
+          </div>
+
+          <div class="card-balance-box">
+            <span class="balance-label">Remaining Balance</span>
+            <div class="balance-amount ${balanceClass}">
+              ${balanceText} <span class="currency">BDT</span>
+            </div>
+            <div class="reading-time">
+              <i class="fa-regular fa-clock"></i> Reading: ${(acc.readingTime || 'Just Now').split(' ')[0]}
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openConsumptionFor('${acc.accountNo}')">
+              <i class="fa-solid fa-chart-line"></i> Usage
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="openHistoryModal('${acc.accountNo}', '${acc.name}')">
+              <i class="fa-solid fa-clock-rotate-left"></i> History
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateAccountDaysLeft(accountNo) {
+    const acc = accountsSummaryData.find(a => a.accountNo === accountNo);
+    if (!acc || acc.remainingBalance === null) return;
+
+    const dayOfMonth = new Date().getDate();
+    const monthBurnRate = acc.rechargedThisMonth ? (acc.rechargedThisMonth / dayOfMonth) : 40;
+    const realDailyCost = (acc.last5DaysAvgCost && acc.last5DaysAvgCost > 0) ? acc.last5DaysAvgCost : monthBurnRate;
+    const estDays = Math.max(0, Math.ceil(acc.remainingBalance / (realDailyCost > 0 ? realDailyCost : 40)));
+    const badgeClass = estDays < 3 ? 'red' : estDays < 7 ? 'yellow' : 'green';
+
+    const badgeEl = document.getElementById(`days-badge-${acc.accountNo}`);
+    if (badgeEl) {
+      badgeEl.className = `days-badge ${badgeClass}`;
+      badgeEl.innerHTML = `<i class="fa-solid fa-hourglass-half"></i> ~${estDays}d left`;
+    }
+  }
+
+  function updatePortfolioSummary() {
+    let totalBalance = 0, totalRechargedThisMonth = 0;
+    accountsSummaryData.forEach(acc => {
+      if (acc.remainingBalance !== null) totalBalance += acc.remainingBalance;
+      if (acc.rechargedThisMonth) totalRechargedThisMonth += acc.rechargedThisMonth;
+    });
+
+    if (elements.totalBalanceVal) elements.totalBalanceVal.innerHTML = `${totalBalance.toFixed(2)} <span class="currency">BDT</span>`;
+    if (elements.totalMonthRechargeVal) elements.totalMonthRechargeVal.innerHTML = `${totalRechargedThisMonth.toFixed(2)} <span class="currency">BDT</span>`;
+  }
+
+  function updateMeterProjections(accountNo) {
+    const acc = accountsSummaryData.find(a => a.accountNo === accountNo);
+    if (!acc) return;
+
+    const rechargedThisMonth = acc.rechargedThisMonth || 0;
+    const rechargedThisYear = acc.rechargedThisYear || 0;
+
+    if (elements.metricRechargedMonth) elements.metricRechargedMonth.textContent = `${rechargedThisMonth.toFixed(2)} BDT`;
+    if (elements.metricRechargedYear) elements.metricRechargedYear.textContent = `${rechargedThisYear.toFixed(2)} BDT`;
+  }
+
+  function populateChartAccountDropdown() {
+    elements.chartAccountSelect.innerHTML = accountsSummaryData.map(acc => 
+      `<option value="${acc.accountNo}">${acc.name} (${acc.accountNo})</option>`
+    ).join('');
+
+    if (accountsSummaryData.length > 0 && !currentChartAccountNo) {
+      currentChartAccountNo = accountsSummaryData[0].accountNo;
+      elements.chartAccountSelect.value = currentChartAccountNo;
+      fetchAndRenderConsumption();
+    }
+  }
+
+  function openConsumptionFor(accountNo) {
+    currentChartAccountNo = accountNo;
+    elements.chartAccountSelect.value = accountNo;
+    document.querySelector('.analytics-section').scrollIntoView({ behavior: 'smooth' });
+    fetchAndRenderConsumption();
+  }
+
+  // 7. CONSUMPTION GRAPH RENDERER
+  async function fetchAndRenderConsumption() {
+    if (!currentChartAccountNo) return;
+    let path = '';
+    const now = new Date();
+
+    if (currentChartType === 'daily') {
+      const fromDay = parseInt(elements.dailyFromDay.value);
+      const fromMonth = parseInt(elements.dailyFromMonth.value);
+      const fromYear = parseInt(elements.dailyFromYear.value);
+      const toDay = parseInt(elements.dailyToDay.value);
+      const toMonth = parseInt(elements.dailyToMonth.value);
+      const toYear = parseInt(elements.dailyToYear.value);
+
+      const from = `${fromYear}-${String(fromMonth + 1).padStart(2, '0')}-${String(fromDay).padStart(2, '0')}`;
+      const to = `${toYear}-${String(toMonth + 1).padStart(2, '0')}-${String(toDay).padStart(2, '0')}`;
+      path = `/getCustomerDailyConsumption?accountNo=${currentChartAccountNo}&meterNo=&dateFrom=${from}&dateTo=${to}`;
+    } else {
+      const fromMonth = parseInt(elements.monthlyFromMonth.value);
+      const fromYear = parseInt(elements.monthlyFromYear.value);
+      const toMonth = parseInt(elements.monthlyToMonth.value);
+      const toYear = parseInt(elements.monthlyToYear.value);
+
+      const from = `${fromYear}-${String(fromMonth + 1).padStart(2, '0')}`;
+      const to = `${toYear}-${String(toMonth + 1).padStart(2, '0')}`;
+      path = `/getCustomerMonthlyConsumption?accountNo=${currentChartAccountNo}&meterNo=&monthFrom=${from}&monthTo=${to}`;
+    }
+
+    try {
+      const json = await fetchDescoApi(path);
+      let dataItems = json?.data || json || [];
+      if (!Array.isArray(dataItems)) dataItems = [];
+      renderConsumptionChart(dataItems);
+    } catch (err) {
+      showToast(`Error loading consumption: ${err.message}`, 'danger');
+    }
+  }
+
+  function renderConsumptionChart(items) {
+    const ctx = document.getElementById('consumptionChart').getContext('2d');
+    if (consumptionChart) consumptionChart.destroy();
+
+    const isDailyMode = currentChartType === 'daily';
+    const chartLabels = [], validValues = [], validTakaValues = [];
+
+    items.forEach(i => {
+      chartLabels.push(i.date || i.month || i.readingDate || 'Data');
+      validValues.push(parseFloat(i.consumedUnit || i.unit || 0));
+      validTakaValues.push(parseFloat(i.consumedTaka || i.taka || i.amount || 0));
+    });
+
+    const totalTaka = validTakaValues.reduce((a, b) => a + b, 0);
+    const avgTaka = validTakaValues.length > 0 ? (totalTaka / validTakaValues.length) : 0;
+
+    if (elements.metricTotalCost) elements.metricTotalCost.textContent = `${totalTaka.toFixed(2)} BDT`;
+    if (elements.metricAvgCost) elements.metricAvgCost.textContent = `${avgTaka.toFixed(2)} BDT`;
+
+    consumptionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          { label: 'Energy (kWh)', data: validValues, backgroundColor: 'rgba(59, 130, 246, 0.6)', borderColor: '#3b82f6', borderWidth: 2, borderRadius: 6, yAxisID: 'y' },
+          { label: 'Cost (BDT)', data: validTakaValues, backgroundColor: 'rgba(245, 158, 11, 0.7)', borderColor: '#f59e0b', borderWidth: 2, borderRadius: 6, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { display: true, position: 'left', ticks: { color: '#6b7280' }, title: { display: true, text: 'kWh', color: '#9ca3af' } },
+          y1: { display: true, position: 'right', ticks: { color: '#f59e0b' }, title: { display: true, text: 'BDT', color: '#f59e0b' } }
+        }
+      }
+    });
+  }
+
+  // 8. RECHARGE HISTORY MODAL
+  let currentHistoryRecords = [];
+  async function openHistoryModal(accountNo, name) {
+    elements.historyModal.classList.remove('hidden');
+    document.getElementById('modalAccountName').textContent = `Recharge History: ${name}`;
+    document.getElementById('modalAccountSub').textContent = `Account #: ${accountNo}`;
+    elements.historyModal.dataset.accountNo = accountNo;
+    elements.historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading recharge history...</td></tr>`;
+
+    try {
+      const now = new Date();
+      const yearStart = `${now.getFullYear() - 1}-01-01`;
+      const todayStr = now.toISOString().split('T')[0];
+      const json = await fetchDescoApi(`/getRechargeHistory?accountNo=${accountNo}&meterNo=&dateFrom=${yearStart}&dateTo=${todayStr}`);
+      let data = json?.data || json || [];
+      if (!Array.isArray(data)) data = [];
+      currentHistoryRecords = data;
+      renderHistoryTable();
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'danger');
+    }
+  }
+
+  function renderHistoryTable() {
+    const query = elements.historySearch.value.toLowerCase().trim();
+    const filtered = currentHistoryRecords.filter(r => {
+      const token = (r.tokenNo || r.token || '').toLowerCase();
+      const amount = (r.totalAmount || r.amount || '').toString();
+      return token.includes(query) || amount.includes(query);
+    });
+
+    if (filtered.length === 0) {
+      elements.historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">No records found.</td></tr>`;
+      return;
+    }
+
+    elements.historyTableBody.innerHTML = filtered.map(r => {
+      const total = parseFloat(r.totalAmount || r.amount || 0);
+      const vat = parseFloat(r.VAT || r.vat || 0);
+      return `
+        <tr>
+          <td><strong>${r.rechargeDate || r.payDate || r.date || 'N/A'}</strong></td>
+          <td class="text-emerald"><strong>${total.toFixed(2)} BDT</strong></td>
+          <td>${(total - vat).toFixed(2)}</td>
+          <td>${vat.toFixed(2)}</td>
+          <td>0.00</td>
+          <td style="font-family:monospace; color:var(--accent-cyan);">${r.tokenNo || r.token || 'N/A'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function exportCSV() {
+    if (!currentHistoryRecords.length) return showToast('No records to export', 'danger');
+    const headers = ['Pay Date', 'Total Amount', 'Token'];
+    const rows = currentHistoryRecords.map(r => [`"${r.payDate||''}"`, `"${r.totalAmount||''}"`, `"${r.tokenNo||''}"`]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const link = document.createElement('a');
+    link.href = encodeURI(csvContent);
+    link.download = `DESCO_Recharge_History.csv`;
+    link.click();
+    showToast('CSV exported!', 'success');
+  }
+
+  // 9. ACCOUNT MANAGEMENT MODAL
+  function renderAccountsForm() {
+    const accounts = getSavedAccounts();
+    const entries = Object.entries(accounts);
+
+    elements.accountsFormList.innerHTML = entries.map(([name, num], idx) => `
+      <div style="display:flex; gap:0.5rem; align-items:center;">
+        <input type="text" class="custom-select acc-name-input" value="${name}" placeholder="Label (e.g. 1st Floor)" style="flex:1;">
+        <input type="text" class="custom-select acc-num-input" value="${num}" placeholder="Account No (8 digits)" style="flex:1;">
+        <button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()" style="color:var(--accent-rose);"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join('');
+  }
+
+  function addAccountRow() {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
+    row.innerHTML = `
+      <input type="text" class="custom-select acc-name-input" placeholder="Label (e.g. 1st Floor)" style="flex:1;">
+      <input type="text" class="custom-select acc-num-input" placeholder="Account No (8 digits)" style="flex:1;">
+      <button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()" style="color:var(--accent-rose);"><i class="fa-solid fa-trash"></i></button>
+    `;
+    elements.accountsFormList.appendChild(row);
+  }
+
+  function saveAccountsFromForm() {
+    const nameInputs = document.querySelectorAll('.acc-name-input');
+    const numInputs = document.querySelectorAll('.acc-num-input');
+
+    const newMap = {};
+    nameInputs.forEach((nameEl, idx) => {
+      const name = nameEl.value.trim();
+      const num = numInputs[idx] ? numInputs[idx].value.trim() : '';
+      if (name && num) newMap[name] = num;
+    });
+
+    saveAccounts(newMap);
+    elements.manageAccountsModal.classList.add('hidden');
+    showToast('Accounts saved! Refreshing dashboard...', 'success');
+    loadDashboardData();
+  }
+
+  // 10. APP INITIALIZATION & EVENT LISTENERS
+  document.addEventListener('DOMContentLoaded', () => {
+    // Clock
+    setInterval(() => { elements.liveClock.textContent = new Date().toLocaleTimeString(); }, 1000);
+
+    // Pickers init
+    initDateDefaults();
+
+    // Event listeners
+    elements.btnRefreshAll.addEventListener('click', loadDashboardData);
+    elements.globalSearch.addEventListener('input', renderAccountsGrid);
+    elements.btnDailyView.addEventListener('click', () => {
+      elements.btnDailyView.classList.add('active'); elements.btnMonthlyView.classList.remove('active');
+      elements.dailyPickerGroup.classList.remove('hidden'); elements.monthlyPickerGroup.classList.add('hidden');
+      currentChartType = 'daily'; fetchAndRenderConsumption();
+    });
+    elements.btnMonthlyView.addEventListener('click', () => {
+      elements.btnMonthlyView.classList.add('active'); elements.btnDailyView.classList.remove('active');
+      elements.monthlyPickerGroup.classList.remove('hidden'); elements.dailyPickerGroup.classList.add('hidden');
+      currentChartType = 'monthly'; fetchAndRenderConsumption();
+    });
+    elements.chartAccountSelect.addEventListener('change', (e) => { currentChartAccountNo = e.target.value; fetchAndRenderConsumption(); });
+
+    // Modals
+    elements.btnManageAccounts.addEventListener('click', () => { renderAccountsForm(); elements.manageAccountsModal.classList.remove('hidden'); });
+    elements.btnCloseAccountsModal.addEventListener('click', () => elements.manageAccountsModal.classList.add('hidden'));
+    elements.btnAddAccountRow.addEventListener('click', addAccountRow);
+    elements.btnSaveAccounts.addEventListener('click', saveAccountsFromForm);
+
+    elements.btnOpenBercCalc.addEventListener('click', () => { elements.bercModal.classList.remove('hidden'); runBercSimulation(); });
+    elements.btnCloseBercModal.addEventListener('click', () => elements.bercModal.classList.add('hidden'));
+    elements.btnCalculateSim.addEventListener('click', runBercSimulation);
+    elements.btnCloseHistoryModal.addEventListener('click', () => elements.historyModal.classList.add('hidden'));
+    elements.historySearch.addEventListener('input', renderHistoryTable);
+    elements.btnExportCSV.addEventListener('click', exportCSV);
+
+    window.addEventListener('click', (e) => {
+      if (e.target === elements.historyModal) elements.historyModal.classList.add('hidden');
+      if (e.target === elements.bercModal) elements.bercModal.classList.add('hidden');
+      if (e.target === elements.manageAccountsModal) elements.manageAccountsModal.classList.add('hidden');
+    });
+
+    // Initial Load
+    loadDashboardData();
+  });
+
+  function initDateDefaults() {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+    const days = Array.from({length: 31}, (_, i) => i + 1);
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const years = Array.from({length: 11}, (_, i) => 2020 + i);
+
+    populateSelect(elements.dailyFromDay, days); populateSelect(elements.dailyToDay, days);
+    populateSelect(elements.dailyFromMonth, months); populateSelect(elements.dailyToMonth, months);
+    populateSelect(elements.monthlyFromMonth, months); populateSelect(elements.monthlyToMonth, months);
+    populateSelect(elements.dailyFromYear, years); populateSelect(elements.dailyToYear, years);
+    populateSelect(elements.monthlyFromYear, years); populateSelect(elements.monthlyToYear, years);
+
+    elements.dailyToDay.value = now.getDate(); elements.dailyToMonth.value = now.getMonth(); elements.dailyToYear.value = now.getFullYear();
+    elements.dailyFromDay.value = thirtyDaysAgo.getDate(); elements.dailyFromMonth.value = thirtyDaysAgo.getMonth(); elements.dailyFromYear.value = thirtyDaysAgo.getFullYear();
+    elements.monthlyToMonth.value = now.getMonth(); elements.monthlyToYear.value = now.getFullYear();
+    elements.monthlyFromMonth.value = 0; elements.monthlyFromYear.value = now.getFullYear() - 1;
+  }
+
+  function populateSelect(el, opts) {
+    if (!el) return;
+    el.innerHTML = opts.map((opt, idx) => `<option value="${typeof opt === 'number' ? opt : idx}">${opt}</option>`).join('');
+  }
+
+  function showToast(msg, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> <span>${msg}</span>`;
+    elements.toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  window.openConsumptionFor = openConsumptionFor;
+  window.openHistoryModal = openHistoryModal;
+  </script>
+</body>
+</html>
