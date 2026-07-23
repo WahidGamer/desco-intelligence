@@ -1,55 +1,35 @@
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
 // server/app.ts
-var app_exports = {};
-__export(app_exports, {
-  default: () => app_default
-});
-module.exports = __toCommonJS(app_exports);
-var import_express = __toESM(require("express"), 1);
-var import_cors = __toESM(require("cors"), 1);
-var import_axios = __toESM(require("axios"), 1);
-var import_https = __toESM(require("https"), 1);
-var import_fs = __toESM(require("fs"), 1);
-var import_path = __toESM(require("path"), 1);
-var app = (0, import_express.default)();
-var CONFIG_FILE = import_path.default.join(process.cwd(), "config.ini");
-app.use((0, import_cors.default)());
-app.use(import_express.default.json());
+import express from "express";
+import cors from "cors";
+import axios from "axios";
+import https from "https";
+import fs from "fs";
+import path from "path";
+var app = express();
+var CONFIG_FILE = path.join(process.cwd(), "config.ini");
+app.use(cors());
+app.use(express.json());
 var DESCO_API_BASE = "https://prepaid.desco.org.bd/api/tkdes/customer";
 function parseConfig() {
-  if (!import_fs.default.existsSync(CONFIG_FILE)) {
-    console.warn("[Config] config.ini not found. No accounts configured.");
-    return {};
+  const DEFAULT_ACCOUNTS = {
+    "1st": "21007757",
+    "2nd": "34113471",
+    "3rd-1": "21007685",
+    "3rd-2": "34113481",
+    "4th": "34113501"
+  };
+  if (process.env.DESCO_ACCOUNTS) {
+    try {
+      const parsed = JSON.parse(process.env.DESCO_ACCOUNTS);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch (_e) {
+    }
+  }
+  if (!fs.existsSync(CONFIG_FILE)) {
+    return DEFAULT_ACCOUNTS;
   }
   try {
-    const content = import_fs.default.readFileSync(CONFIG_FILE, "utf-8");
+    const content = fs.readFileSync(CONFIG_FILE, "utf-8");
     const accounts = {};
     let inAccountSection = false;
     content.split("\n").forEach((line) => {
@@ -69,16 +49,16 @@ function parseConfig() {
         }
       }
     });
-    return accounts;
+    return Object.keys(accounts).length > 0 ? accounts : DEFAULT_ACCOUNTS;
   } catch (err) {
     console.error("[Config] Failed to read config.ini:", err);
-    return {};
+    return DEFAULT_ACCOUNTS;
   }
 }
-var descoClient = import_axios.default.create({
+var descoClient = axios.create({
   baseURL: DESCO_API_BASE,
   timeout: 15e3,
-  httpsAgent: new import_https.default.Agent({ rejectUnauthorized: false }),
+  httpsAgent: new https.Agent({ rejectUnauthorized: false }),
   headers: {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "application/json, text/plain, */*"
@@ -369,4 +349,6 @@ app.get("/api/desco/consumption/monthly/:accountNo", async (req, res) => {
   }
 });
 var app_default = app;
-module.exports = exports.default || module.exports;
+export {
+  app_default as default
+};

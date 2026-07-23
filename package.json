@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server/server.ts",
-    "build": "vite build && esbuild server/server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server/app.ts --bundle --platform=node --format=cjs --packages=external --footer:js=\"module.exports = exports.default || module.exports;\" --outfile=api/index.js",
+    "build": "vite build && esbuild server/server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server/app.ts --bundle --platform=node --format=esm --packages=external --outfile=api/index.js",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server/server.js",
     "lint": "tsc --noEmit"

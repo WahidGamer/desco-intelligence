@@ -14,11 +14,27 @@ app.use(express.json());
 // DESCO Base API URL
 const DESCO_API_BASE = 'https://prepaid.desco.org.bd/api/tkdes/customer';
 
-// Helper to parse config.ini
+// Helper to parse config.ini or environment variables
 function parseConfig(): Record<string, string> {
+  const DEFAULT_ACCOUNTS: Record<string, string> = {
+    '1st': '21007757',
+    '2nd': '34113471',
+    '3rd-1': '21007685',
+    '3rd-2': '34113481',
+    '4th': '34113501'
+  };
+
+  // 1. Check environment variable DESCO_ACCOUNTS (JSON format)
+  if (process.env.DESCO_ACCOUNTS) {
+    try {
+      const parsed = JSON.parse(process.env.DESCO_ACCOUNTS);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (_e) {}
+  }
+
+  // 2. Check local config.ini
   if (!fs.existsSync(CONFIG_FILE)) {
-    console.warn('[Config] config.ini not found. No accounts configured.');
-    return {};
+    return DEFAULT_ACCOUNTS;
   }
 
   try {
@@ -44,10 +60,10 @@ function parseConfig(): Record<string, string> {
       }
     });
 
-    return accounts;
+    return Object.keys(accounts).length > 0 ? accounts : DEFAULT_ACCOUNTS;
   } catch (err) {
     console.error('[Config] Failed to read config.ini:', err);
-    return {};
+    return DEFAULT_ACCOUNTS;
   }
 }
 
