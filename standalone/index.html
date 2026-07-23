@@ -655,7 +655,6 @@ body.dark-theme {
      STANDALONE SCRIPT BUNDLE (NO NODE.JS / NO SERVER REQUIRED)
      ========================================================================== */
 
-  // 1. DEFAULT ACCOUNTS CONFIG (FALLBACK FOR FIRST TIME VISIT)
   const DEFAULT_ACCOUNTS = {
     '1st': '21007757',
     '2nd': '34113471',
@@ -679,27 +678,22 @@ body.dark-theme {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(accountsMap));
   }
 
-  // 2. CORS PROXY FETCH ENGINE
-  // Directly fetches DESCO REST API endpoints through CORS proxies
   const DESCO_API_BASE = 'https://prepaid.desco.org.bd/api/tkdes/customer';
 
   async function fetchDescoApi(path) {
     const targetUrl = `${DESCO_API_BASE}${path}`;
     
-    // List of CORS proxy fallbacks
     const proxies = [
       url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
       url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
       url => `https://thingproxy.freeboard.io/fetch/${url}`
     ];
 
-    // Try direct fetch first
     try {
       const res = await fetch(targetUrl, { signal: AbortSignal.timeout(4000) });
       if (res.ok) return await res.json();
     } catch (_e) {}
 
-    // Try proxies sequentially
     for (const proxyFn of proxies) {
       try {
         const proxyUrl = proxyFn(targetUrl);
@@ -714,7 +708,6 @@ body.dark-theme {
     throw new Error('Could not connect to DESCO servers via proxy');
   }
 
-  // 3. APP GLOBALS & STATE
   let accountsSummaryData = [];
   let activeFilter = 'all';
   let consumptionChart = null;
@@ -778,11 +771,9 @@ body.dark-theme {
     btnSaveAccounts: document.getElementById('btnSaveAccounts')
   };
 
-  // 4. BERC TARIFF ENGINE
   function calculateBercBill(category, units, load = 2) {
     units = Math.max(0, parseFloat(units) || 0);
     load = Math.max(0.5, parseFloat(load) || 1);
-
     let energyCharge = 0, demandRate = 42, activeSlab = 'N/A', slabDetails = [];
 
     if (category === 'LT-A') {
@@ -826,27 +817,6 @@ body.dark-theme {
     return { units, energyCharge, demandCharge, grossSubTotal, prepaidRebate, netBill, vat, totalBill, activeSlab, slabDetails };
   }
 
-  function invertBercBill(totalNetBill, category = 'LT-A', load = 2) {
-    totalNetBill = Math.max(0, parseFloat(totalNetBill) || 0);
-    load = Math.max(0.5, parseFloat(load) || 1);
-    let demandRate = category === 'LT-E' ? 90 : category === 'LT-C1' ? 88 : 42;
-
-    const grossSubTotal = totalNetBill / 1.04475;
-    const demandCharge = load * demandRate;
-    let energyCharge = Math.max(0, grossSubTotal - demandCharge);
-
-    if (category === 'LT-E') return energyCharge / 15.36;
-    if (category === 'LT-C1') return energyCharge / 12.73;
-
-    if (energyCharge <= 266) return energyCharge / 5.32;
-    if (energyCharge <= 463.5) return energyCharge / 6.18;
-    if (energyCharge <= 1526) return 75 + (energyCharge - 463.5) / 8.50;
-    if (energyCharge <= 2436) return 200 + (energyCharge - 1526) / 9.10;
-    if (energyCharge <= 3398) return 300 + (energyCharge - 2436) / 9.62;
-    if (energyCharge <= 6400) return 400 + (energyCharge - 3398) / 15.01;
-    return 600 + (energyCharge - 6400) / 17.35;
-  }
-
   function runBercSimulation() {
     if (!elements.simResultOutput) return;
     const cat = elements.simCategory.value || 'LT-A';
@@ -878,7 +848,6 @@ body.dark-theme {
     `;
   }
 
-  // 5. FETCH & DATA LOADING LOGIC
   async function loadDashboardData() {
     elements.refreshSpin.classList.add('fa-spin');
     showShimmerGrid();
@@ -1004,7 +973,6 @@ body.dark-theme {
     }
   }
 
-  // 6. UI RENDERERS
   function renderAccountsGrid() {
     const searchTerm = (elements.globalSearch.value || '').toLowerCase().trim();
     const filtered = accountsSummaryData.filter(acc => {
@@ -1144,7 +1112,6 @@ body.dark-theme {
     fetchAndRenderConsumption();
   }
 
-  // 7. CONSUMPTION GRAPH RENDERER
   async function fetchAndRenderConsumption() {
     if (!currentChartAccountNo) return;
     let path = '';
@@ -1186,7 +1153,6 @@ body.dark-theme {
     const ctx = document.getElementById('consumptionChart').getContext('2d');
     if (consumptionChart) consumptionChart.destroy();
 
-    const isDailyMode = currentChartType === 'daily';
     const chartLabels = [], validValues = [], validTakaValues = [];
 
     items.forEach(i => {
@@ -1221,7 +1187,6 @@ body.dark-theme {
     });
   }
 
-  // 8. RECHARGE HISTORY MODAL
   let currentHistoryRecords = [];
   async function openHistoryModal(accountNo, name) {
     elements.historyModal.classList.remove('hidden');
@@ -1285,12 +1250,11 @@ body.dark-theme {
     showToast('CSV exported!', 'success');
   }
 
-  // 9. ACCOUNT MANAGEMENT MODAL
   function renderAccountsForm() {
     const accounts = getSavedAccounts();
     const entries = Object.entries(accounts);
 
-    elements.accountsFormList.innerHTML = entries.map(([name, num], idx) => `
+    elements.accountsFormList.innerHTML = entries.map(([name, num]) => `
       <div style="display:flex; gap:0.5rem; align-items:center;">
         <input type="text" class="custom-select acc-name-input" value="${name}" placeholder="Label (e.g. 1st Floor)" style="flex:1;">
         <input type="text" class="custom-select acc-num-input" value="${num}" placeholder="Account No (8 digits)" style="flex:1;">
@@ -1327,15 +1291,10 @@ body.dark-theme {
     loadDashboardData();
   }
 
-  // 10. APP INITIALIZATION & EVENT LISTENERS
   document.addEventListener('DOMContentLoaded', () => {
-    // Clock
     setInterval(() => { elements.liveClock.textContent = new Date().toLocaleTimeString(); }, 1000);
-
-    // Pickers init
     initDateDefaults();
 
-    // Event listeners
     elements.btnRefreshAll.addEventListener('click', loadDashboardData);
     elements.globalSearch.addEventListener('input', renderAccountsGrid);
     elements.btnDailyView.addEventListener('click', () => {
@@ -1350,7 +1309,6 @@ body.dark-theme {
     });
     elements.chartAccountSelect.addEventListener('change', (e) => { currentChartAccountNo = e.target.value; fetchAndRenderConsumption(); });
 
-    // Modals
     elements.btnManageAccounts.addEventListener('click', () => { renderAccountsForm(); elements.manageAccountsModal.classList.remove('hidden'); });
     elements.btnCloseAccountsModal.addEventListener('click', () => elements.manageAccountsModal.classList.add('hidden'));
     elements.btnAddAccountRow.addEventListener('click', addAccountRow);
@@ -1369,7 +1327,6 @@ body.dark-theme {
       if (e.target === elements.manageAccountsModal) elements.manageAccountsModal.classList.add('hidden');
     });
 
-    // Initial Load
     loadDashboardData();
   });
 
