@@ -18,11 +18,8 @@ def load_config():
     config = configparser.ConfigParser()
     if not os.path.exists(CONFIG_FILE):
         config['ACCOUNT'] = {
-            '1st': '21007757',
-            '2nd': '34113471',
-            '3rd-1': '21007685',
-            '3rd-2': '34113481',
-            '4th': '34113501',
+            'Ground Floor': '12345678',
+            'First Floor': '87654321',
         }
         try:
             with open(CONFIG_FILE, 'w') as f:
